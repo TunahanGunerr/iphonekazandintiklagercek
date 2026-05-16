@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naberr</title>
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff6b81;
+            --secondary: #f6e58d;
+            --dark: #2f3542;
+            --light: #f1f2f6;
+            --yes-color: #2ed573;
+            --no-color: #ff4757;
+            --game-bg: #dfe4ea;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden {
+            display: none !important;
+            opacity: 0;
+        }
+
+        img.gif-container {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        h1, h2, p {
+            font-weight: 800;
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        p.subtitle {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #57606f;
+            max-width: 400px;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .btn {
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn-yes { background-color: var(--yes-color); color: white; }
+        .btn-no { background-color: var(--no-color); color: white; }
+
+        /* Modal Tasarımı */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+            width: 450px;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Kelime Oyunu Izgarası */
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+            margin: 20px auto;
+            background: var(--game-bg);
+            padding: 8px;
+            border-radius: 15px;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .letter-box {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .letter-box:active, .letter-box.selected {
+            background: var(--primary);
+            color: white;
+            transform: scale(0.9);
+        }
+
+        .timer-badge {
+            background: var(--dark);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        #success-screen h1 {
+            font-size: 2.5rem;
+            color: var(--yes-color);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- GİRİŞ EKRANI (Özür Dilerim) -->
+    <div id="intro-screen" class="screen">
+        <img id="intro-gif" class="gif-container" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExc3Bwd3VhemFxN2Uxa2I5eG15M3ppcjM1NnRocWQ2OHdzN2d3bzJkbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NA20f5eHUYLG32zVRR/giphy.gif" alt="Özür Gif">
+        <h1>Özür dilerim...</h1>
+        <p class="subtitle">Her şeyden önce, seni biraz üzdüysem veya kırdıysam çok özür dilerim. Barışalım mı?</p>
+        <div class="buttons-container">
+            <button class="btn btn-yes" onclick="startApp()"><i class="fa-solid fa-heart"></i> Tabii ki!</button>
+        </div>
+    </div>
+
+    <!-- ANA EKRAN -->
+    <div id="main-screen" class="screen hidden">
+        <img id="main-gif" class="gif-container" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW82NjczYTh5dDliOWxzZXkwcGtyZmp0NWIwNmpxaHF2MzdwcjAyZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/f6voRJoc774oWDFhTI/giphy.gif" alt="Kahve Gif">
+        <h1 id="main-title"><i class="fa-solid fa-mug-hot"></i> Kahve içmeye ne dersin??</h1>
+        
+        <div class="buttons-container">
+            <button id="btn-yes-main" class="btn btn-yes" onclick="showSuccess()"><i class="fa-solid fa-check"></i> Evet</button>
+            <button id="btn-no-main" class="btn btn-no"><i class="fa-solid fa-xmark"></i> Hayır</button>
+        </div>
+    </div>
+
+    <!-- 1. POP-UP (Emin misin Ekranı - Butonlar Sabit) -->
+    <div id="modal1" class="modal-overlay">
+        <div class="modal-content">
+            <img class="gif-container" src="https://media.giphy.com/media/flhDi6Bb6ySnYCjB9N/giphy.gif" alt="Israrcı Gif">
+            <h2>Kaldığımız yerden devam...<br>Cidden emin misin?</h2>
+            <p class="subtitle">Bak son kararınsa saygı duyucam (duymadım).</p>
+            <div class="buttons-container">
+                <button class="btn btn-yes" onclick="showSuccess()"><i class="fa-solid fa-heart"></i> Evet</button>
+                <button class="btn btn-no" onclick="openGameModal()"><i class="fa-solid fa-xmark"></i> Hayır</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. POP-UP (Kelime Oyunu Ekranı) -->
+    <div id="modal2-game" class="modal-overlay">
+        <div class="modal-content">
+            <div class="timer-badge"><i class="fa-solid fa-stopwatch"></i> <span id="timer">60</span> sn</div>
+            <h2 id="game-text" style="font-size: 1.2rem; min-height: 60px;">Tamam, aşağıdaki tabloda 'HAYIR' kelimesini bulursan peşini bırakıyorum :)</h2>
+            
+            <div id="word-grid" class="word-grid">
+                <!-- Harfler JS ile eklenecek -->
+            </div>
+            
+            <p style="font-size: 0.9rem; color: #747d8c;"><i class="fa-solid fa-circle-info"></i> Harflere tıklayarak seçebilirsin.</p>
+        </div>
+    </div>
+
+    <!-- 3. POP-UP (Oyun Bitti - Sadece Evet Butonu) -->
+    <div id="modal3-final" class="modal-overlay">
+        <div class="modal-content">
+            <img class="gif-container" src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWZtZGlhdWVzdThlZWs3aThpdTZ6bTc2bTE0NjFraHF6OGppMHFtdSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/wkFD61xNS3dfnYOnxb/giphy.gif" alt="Zaman Bitti Gif">
+            <h2>Zaman doldu!</h2>
+            <p class="subtitle">Maalesef HAYIR kelimesini bulamadın. Bu da demek oluyor ki...</p>
+            <div class="buttons-container">
+                <button class="btn btn-yes" style="width: 100%; justify-content: center;" onclick="showSuccess()"><i class="fa-solid fa-heart"></i> Mecburen Evet!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BAŞARILI EKRANI -->
+    <div id="success-screen" class="screen hidden">
+        <img class="gif-container" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW82NjczYTh5dDliOWxzZXkwcGtyZmp0NWIwNmpxaHF2MzdwcjAyZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/f6voRJoc774oWDFhTI/giphy.gif" alt="Başarı Gif">
+        <h1><i class="fa-solid fa-champagne-glasses"></i> Harika!</h1>
+        <p class="subtitle">Anlaştığımıza göre kahveler benden :) Konumu atıyorum...</p>
+    </div>
+
+    <script>
+        // ANA EKRAN DEĞİŞKENLERİ
+        const btnNoMain = document.getElementById('btn-no-main');
+        const btnYesMain = document.getElementById('btn-yes-main');
+        const mainTitle = document.getElementById('main-title');
+        const mainGif = document.getElementById('main-gif');
+        const mainScreen = document.getElementById('main-screen');
+        const introScreen = document.getElementById('intro-screen');
+        
+        const modal1 = document.getElementById('modal1');
+        const modal2Game = document.getElementById('modal2-game');
+        const modal3Final = document.getElementById('modal3-final');
+        const successScreen = document.getElementById('success-screen');
+
+        // ANA EKRAN YAZILARI VE UYGUN GİFLER
+        const steps = [
+            { text: "Emin misin?", gif: "https://media.giphy.com/media/j5WL593vUseKxkJ3tY/giphy.gif" }, 
+            { text: "Bir daha düşün bence...", gif: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcWgwazRiNGVtMTFhMzJ5dDY4cDBxZjB0Y3c1Y2drcTc2ZXRtdDR6MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jIL3lq9Ah00tG/giphy.gif" }, 
+            { text: "Gerçekten mi? İkna edebilirim...", gif: "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTlraXk4cHRuZDg4MjQyMW53YXYwMTkzMHZ0cXY3ZTg5bGlpNGpvNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/d4CnuaS1BQl7W5nowu/giphy.gif" }, 
+            { text: "Son kararın mı? Bak darılırım...", gif: "" }, 
+            { text: "Hadi ama çok güzel olacak!", gif: "https://media.giphy.com/media/kZqbBT64ECtjy/giphy.gif" }
+        ];
+
+        let clickCount = 0;
+        let yesScale = 1;
+        let hitText = false;
+        let timerInterval;
+
+        // ANA EKRAN HAYIR BUTONU MANTIĞI
+        btnNoMain.addEventListener('click', () => {
+            if (hitText) {
+                modal1.classList.add('active'); // Evet yazısı başlığa değdiyse 1. Modalı aç
+                return;
+            }
+
+            // Yazıyı ve o yazıya ait GIF'i güncelle
+            const currentStep = steps[clickCount % steps.length];
+            mainTitle.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${currentStep.text}`;
+            mainGif.src = currentStep.gif;
+
+            clickCount++;
+
+            // Evet butonunu büyüt
+            yesScale += 0.45;
+            btnYesMain.style.transform = `scale(${yesScale})`;
+
+            // Çarpışma kontrolü
+            const yesRect = btnYesMain.getBoundingClientRect();
+            const titleRect = mainTitle.getBoundingClientRect();
+
+            if (yesRect.top <= titleRect.bottom + 15) {
+                hitText = true;
+            }
+        });
+
+        // 2. MODALI (KELİME OYUNU) AÇMA VE OYUNU BAŞLATMA
+        function openGameModal() {
+            modal1.classList.remove('active'); // İlk modalı kapat
+            modal2Game.classList.add('active'); // Oyun modalını aç
+            
+            generateGrid();
+            startTimer();
+        }
+
+        // KELİME OYUNU IZGARASINI OLUŞTUR
+        function generateGrid() {
+            const grid = document.getElementById('word-grid');
+            grid.innerHTML = '';
+            
+            const targetWord = "HAYIR";
+            const nearMisses = ["HAYI", "AYIR", "HAYIKR", "HAYR", "HAYIRR", "HAAYIR"];
+            const letters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVZ";
+            const weightLetters = "HAYIR";
+            
+            const size = 144; // 12x12
+            const gridData = new Array(size).fill(null);
+
+            // Yakın varyasyonları yerleştir
+            for (let i = 0; i < 10; i++) {
+                const miss = nearMisses[Math.floor(Math.random() * nearMisses.length)];
+                let pos = Math.floor(Math.random() * (size - miss.length));
+                for (let j = 0; j < miss.length; j++) {
+                    if (gridData[pos + j] === null) gridData[pos + j] = miss[j];
+                }
+            }
+
+            // Kalan boşlukları doldur (H, A, Y, I, R harflerine öncelik vererek)
+            for (let i = 0; i < size; i++) {
+                if (gridData[i] === null) {
+                    if (Math.random() < 0.6) { // %60 ihtimalle hedef harflerden biri
+                        gridData[i] = weightLetters[Math.floor(Math.random() * weightLetters.length)];
+                    } else {
+                        gridData[i] = letters[Math.floor(Math.random() * letters.length)];
+                    }
+                }
+            }
+
+            // KESİN ENGELLEME: Eğer kazara "HAYIR" oluşmuşsa boz
+            let gridString = gridData.join('');
+            while (gridString.includes("HAYIR")) {
+                let index = gridString.indexOf("HAYIR");
+                gridData[index + 2] = "V"; // 'Y' harfini 'V' ile değiştirerek boz
+                gridString = gridData.join('');
+            }
+
+            gridData.forEach(char => {
+                const div = document.createElement('div');
+                div.className = 'letter-box';
+                div.innerText = char;
+                div.onclick = function() {
+                    this.classList.toggle('selected');
+                }
+                grid.appendChild(div);
+            });
+        }
+
+        // KELİME OYUNU SÜRESİ VE SAMİMİ YAZI DEĞİŞİMLERİ
+        function startTimer() {
+            let timeLeft = 60;
+            const timerDisplay = document.getElementById('timer');
+            const gameText = document.getElementById('game-text');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+
+                // Samimi yazıyı süreye göre değiştir
+                if(timeLeft === 50) {
+                    gameText.innerHTML = "Süre başladı! Dikkatli bak, oralarda bir yerde olmalı...";
+                } else if(timeLeft === 40) {
+                    gameText.innerHTML = "Hala bulamadın mı? 'H' harflerine odaklan bence ;)";
+                } else if(timeLeft === 30) {
+                    gameText.innerHTML = "Yolun yarısı bitti! Kahve kokusu gelmeye başladı bile...";
+                } else if(timeLeft === 20) {
+                    gameText.innerHTML = "Cidden zorlanıyor musun? Alt taraflara mı baksan acaba?";
+                } else if(timeLeft === 10) {
+                    gameText.innerHTML = "Son 10 saniye! Kaderine razı olsan mı artık?";
+                } else if(timeLeft === 5) {
+                    gameText.innerHTML = "Ve... Evet demeye hazır mısın? :)";
+                }
+
+                // Süre bittiğinde dördüncü modalı aç
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    modal2Game.classList.remove('active');
+                    modal3Final.classList.add('active');
+                }
+            }, 1000);
+        }
+
+        // UYGULAMAYI BAŞLAT (GİRİŞTEN ANA EKRANA)
+        function startApp() {
+            introScreen.classList.add('hidden');
+            mainScreen.classList.remove('hidden');
+        }
+
+        // SON EKRAN (EVET'E BASILDIĞINDA VEYA SÜRE BİTTİĞİNDE)
+        function showSuccess() {
+            // Eğer oyun sırasında Evet'e basarsa sayacı durdur
+            if(timerInterval) clearInterval(timerInterval);
+
+            mainScreen.classList.add('hidden');
+            modal1.classList.remove('active');
+            modal2Game.classList.remove('active');
+            modal3Final.classList.remove('active');
+            successScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
