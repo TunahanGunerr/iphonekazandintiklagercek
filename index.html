@@ -94,6 +94,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -262,7 +263,7 @@
 
     <!-- BAŞARILI EKRANI -->
     <div id="success-screen" class="screen hidden">
-        <img class="gif-container" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbW82NjczYTh5dDliOWxzZXkwcGtyZmp0NWIwNmpxaHF2MzdwcjAyZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/f6voRJoc774oWDFhTI/giphy.gif" alt="Başarı Gif">
+        <img class="gif-container" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExeGZlMGNmcXloY2EzMjN1MnZyMmcyaGQ5ajV6cjYwcWhiYWczanBwYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/f6voRJoc774oWDFhTI/giphy.gif" alt="Başarı Gif">
         <h1><i class="fa-solid fa-champagne-glasses"></i> Harika!</h1>
         <p class="subtitle">Anlaştığımıza göre kahveler benden :) Konumu atıyorum...</p>
     </div>
@@ -298,7 +299,37 @@
         // ANA EKRAN HAYIR BUTONU MANTIĞI
         btnNoMain.addEventListener('click', () => {
             if (hitText) {
-                modal1.classList.add('active'); // Evet yazısı başlığa değdiyse 1. Modalı aç
+                // 1. Butonun mevcut konumunu al
+                const rect = btnYesMain.getBoundingClientRect();
+                
+                // 2. Butonu mevcut yerinde 'fixed' yap (zıplamayı önlemek için)
+                btnYesMain.style.transition = 'none';
+                btnYesMain.style.position = 'fixed';
+                btnYesMain.style.top = rect.top + 'px';
+                btnYesMain.style.left = rect.left + 'px';
+                btnYesMain.style.width = rect.width + 'px';
+                btnYesMain.style.height = rect.height + 'px';
+                btnYesMain.style.margin = '0';
+                btnYesMain.style.zIndex = '998';
+                
+                // Reflow (tarayıcının pozisyon değişikliğini algılaması için)
+                btnYesMain.offsetHeight;
+                
+                // 3. Büyüme animasyonunu başlat
+                btnYesMain.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+                btnYesMain.style.top = '0';
+                btnYesMain.style.left = '0';
+                btnYesMain.style.width = '100vw';
+                btnYesMain.style.height = '100vh';
+                btnYesMain.style.borderRadius = '0';
+                btnYesMain.style.transform = 'scale(1)'; // Mevcut scale'i sıfırla, width/height ile büyüyecek
+                
+                // 4. Animasyon bitince modalı aç ve butonu gizle (arka taraf beyaz kalsın diye)
+                setTimeout(() => {
+                    modal1.classList.add('active');
+                    btnYesMain.style.opacity = '0'; // Butonu gizle
+                    btnYesMain.style.pointerEvents = 'none';
+                }, 800); 
                 return;
             }
 
